@@ -1,0 +1,26 @@
+name: chromehearts-line-push
+on:
+  schedule:
+    - cron: "*/20 * * * *"   # 20分ごと
+  workflow_dispatch: {}       # 手動でも実行できる
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Run monitor
+        run: python monitor.py
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+      - name: Persist state
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@example.com"
+          git add known_urls.json || true
+          git commit -m "update known urls" || true
+          git push || true
